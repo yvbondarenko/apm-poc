@@ -55,7 +55,7 @@
   </dependencies>
 
   <build>
-    <finalName>test</finalName>
+    <finalName>apm-poc</finalName>
     <defaultGoal>package</defaultGoal>
     <plugins>
       <plugin>
@@ -71,7 +71,7 @@
         <version>2.4.1</version>
         <configuration>
           <descriptorRefs>
-            <descriptorRef>jar-with-dependencies</descriptorRef>
+            <descriptorRef>java</descriptorRef>
           </descriptorRefs>
           <archive>
             <manifest>
