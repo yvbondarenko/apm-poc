@@ -11,7 +11,6 @@ if [[ -z $line ]]
     fi
   cp apm-poc-java.jar $i.jar
   command="nohup java -cp $i.jar yb.Main \"$line\" &"
-  echo $command
   eval r=$command
   let "i++"
 done < $input

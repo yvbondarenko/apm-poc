@@ -20,6 +20,10 @@ timestamps
                     cp ../../kill-all.sh .
                     cp ../../startDeploy.sh .
                     cp ../../deployConfig.conf .
+                    chmod +x ./startDeploy.sh
+                    chmod +x ./kill-all.sh
+                    ./kill-all.sh
+                    ./startDeploy.sh
                 '''
         }
     }
