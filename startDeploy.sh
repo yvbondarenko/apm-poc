@@ -1,4 +1,5 @@
 #!/bin/bash
+JENKINS_NODE_COOKIE=dontKillMe
 echo "Start"
 input="./deployConfig.conf"
 echo "1"
