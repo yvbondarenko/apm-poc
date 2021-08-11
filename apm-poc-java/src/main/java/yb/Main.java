@@ -166,6 +166,7 @@ public static AppConfig config = new AppConfig();
     private static void Income(HttpExchange exchange) throws Exception {
         if ("POST".equals(exchange.getRequestMethod())) {
             StringBuilder textBuilder = new StringBuilder();
+
             try (Reader reader = new BufferedReader(new InputStreamReader
                     (exchange.getRequestBody(), Charset.forName(StandardCharsets.UTF_8.name())))) {
                 int c;
@@ -174,14 +175,17 @@ public static AppConfig config = new AppConfig();
                 }
             }
             String respText = config.Name+":"+textBuilder.toString();
+
+            exchange.sendResponseHeaders(200, respText.getBytes().length);
+            exchange.getRequestHeaders().put("Content-Type", Collections.singletonList("text/plain"));
+
+            OutputStream output = exchange.getResponseBody();
+            output.write(respText.getBytes(StandardCharsets.UTF_8));
+            output.flush();
             if(config.LoadType.equals("caller"))
             {
                 SendToDownStreams(textBuilder.toString());
             }
-            exchange.sendResponseHeaders(200, respText.getBytes().length);
-            OutputStream output = exchange.getResponseBody();
-            output.write(respText.getBytes(StandardCharsets.UTF_8));
-            output.flush();
         } else {
             exchange.sendResponseHeaders(405, -1);// 405 Method Not Allowed
         }

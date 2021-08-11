@@ -2,10 +2,7 @@ package yb;
 
 import lombok.SneakyThrows;
 
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -38,17 +35,27 @@ public class HttpCaller implements Runnable {
         byte[] encodedAuth = Base64.getEncoder().encodeToString(auth.getBytes()).getBytes(StandardCharsets.UTF_8);
         String authHeaderValue = "Basic " + new String(encodedAuth);
         con.setRequestProperty("Authorization", authHeaderValue);
+        con.setRequestProperty("Content-Type", "text/plain; charset=utf-8");
+        con.setRequestProperty("Accept", "text/plain");
+        con.setRequestProperty("Content-Length", "" + message.length());
         con.setReadTimeout(15000);
         con.setConnectTimeout(15000);
         con.setRequestMethod("POST");
         con.setDoInput(true);
         con.setDoOutput(true);
-        OutputStream os = con.getOutputStream();
-        BufferedWriter writer = new BufferedWriter(
-                new OutputStreamWriter(os, StandardCharsets.UTF_8));
-        writer.write(message);
-        writer.flush();
-        writer.close();
-        os.close();
+        con.connect();
+        con.getOutputStream().write(message.getBytes());
+        con.getOutputStream().flush();
+
+        StringBuffer buf = new StringBuffer(1024);
+        InputStream is = con.getInputStream();
+        for (;;) {
+            byte[] b = new byte[256];
+            int l = is.read(b);
+            if (l > 0)
+                buf.append(new String(b, 0, l));
+            else
+                break;
+        }
     }
 }
