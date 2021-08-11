@@ -17,7 +17,7 @@ public class HttpCaller implements Runnable {
 
     public HttpCaller(String message, String endPoint) throws Exception {
         this.message = message;
-
+        endPoint+="/api/";
         if (endPoint.startsWith(":")) {
             urlString = "http://localhost" + endPoint;
         } else if (endPoint.startsWith("http")) {
@@ -25,7 +25,6 @@ public class HttpCaller implements Runnable {
         } else {
             throw new Exception("Unknown URL EndPoint. Allowed only ':port' or 'http://hostname:port(port in optional)'");
         }
-        urlString += "/api/";
     }
 
     @SneakyThrows
