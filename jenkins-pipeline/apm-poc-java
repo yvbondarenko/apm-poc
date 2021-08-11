@@ -1,0 +1,26 @@
+timestamps 
+{
+    node ('apm-poc1') 
+    { 
+        stage ('Checkout') 
+        {
+            checkout([$class: 'GitSCM', branches: [[name: '*/main']], userRemoteConfigs: [[url: 'https://github.com/yvbondarenko/apm-poc.git']]])
+        }
+        stage ('Maven Buid') 
+        {
+            sh '''        
+                    export M2_HOME=/opt/maven
+                    export MAVEN_HOME=/opt/maven
+                    export PATH=${M2_HOME}/bin:${PATH}
+                    cd apm-poc-java
+                    mvn clean compile verify package
+                    cd target/
+                    rm -rf apm-poc-java.jar
+                    mv apm-poc-java-jar-with-dependencies.jar apm-poc-java.jar
+                    cp ../../kill-all.sh .
+                    cp ../../startDeploy.sh .
+                    cp ../../deployConfig.conf .
+                '''
+        }
+    }
+}
