@@ -1,10 +1,8 @@
 #!/bin/bash
-kill -9 `ps aux|grep 'generateIntervalMs' | awk '$1 {print $2}'`
 input="./deployConfig.conf"
 i=1
 while read line
 do
-
 if [[ -z $line ]]
     then
          exit
