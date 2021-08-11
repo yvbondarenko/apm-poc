@@ -25,6 +25,7 @@ public class HttpCaller implements Runnable {
         } else {
             throw new Exception("Unknown URL EndPoint. Allowed only ':port' or 'http://hostname:port(port in optional)'");
         }
+        urlString += "/api/";
     }
 
     @SneakyThrows
