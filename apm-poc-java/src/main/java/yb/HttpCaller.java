@@ -9,7 +9,7 @@ import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
+import java.util.Base64;
 
 public class HttpCaller implements Runnable {
     private String message;
@@ -34,6 +34,10 @@ public class HttpCaller implements Runnable {
     private void SendHttpPost() throws IOException {
         URL url = new URL (urlString);
         HttpURLConnection con = (HttpURLConnection)url.openConnection();
+        String auth = "user:password";
+        byte[] encodedAuth = Base64.getEncoder().encodeToString(auth.getBytes()).getBytes(StandardCharsets.UTF_8);
+        String authHeaderValue = "Basic " + new String(encodedAuth);
+        con.setRequestProperty("Authorization", authHeaderValue);
         con.setReadTimeout(15000);
         con.setConnectTimeout(15000);
         con.setRequestMethod("POST");
