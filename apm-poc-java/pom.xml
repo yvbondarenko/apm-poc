@@ -16,6 +16,11 @@
 
   <dependencies>
     <dependency>
+      <groupId>co.elastic.apm</groupId>
+      <artifactId>elastic-apm-agent</artifactId>
+      <version>1.25.0</version>
+    </dependency>
+    <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
       <version>2.9.7</version>
@@ -58,6 +63,24 @@
     <finalName>apm-poc-java</finalName>
     <defaultGoal>package</defaultGoal>
     <plugins>
+      <plugin>
+        <groupId>com.coderplus.maven.plugins</groupId>
+        <artifactId>copy-rename-maven-plugin</artifactId>
+        <version>1.0</version>
+        <executions>
+          <execution>
+            <id>copy-file</id>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>copy</goal>
+            </goals>
+            <configuration>
+              <sourceFile>${apm-agent-parent.base.dir}/NOTICE</sourceFile>
+              <destinationFile>target</destinationFile>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.1</version>
