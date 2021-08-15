@@ -11,8 +11,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
 public class HttpCaller implements Runnable {
-    private String message;
-    private String urlString;
+    private final String message;
+    private final String urlString;
 
     public HttpCaller(String message, String endPoint) throws Exception {
         this.message = message;
@@ -31,7 +31,7 @@ public class HttpCaller implements Runnable {
         SendHttpPost();
     }
 
-    private void SendHttpPost() throws IOException {
+    private void SendHttpPost()  {
         //Transaction tx = null;
         Span parent = null;
         if (Main.config.ApmType.equals("elastic")) {
@@ -62,7 +62,7 @@ public class HttpCaller implements Runnable {
             con.getOutputStream().write(message.getBytes());
             con.getOutputStream().flush();
 
-            StringBuffer buf = new StringBuffer(1024);
+            StringBuilder buf = new StringBuilder(1024);
             InputStream is = con.getInputStream();
             for (; ; ) {
                 byte[] b = new byte[256];
