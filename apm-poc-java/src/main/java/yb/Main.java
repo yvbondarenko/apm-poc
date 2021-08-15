@@ -32,6 +32,7 @@ public static AppConfig config = new AppConfig();
                 System.out.println("Node Name:"+config.Name);
                 System.out.println("Node Type:"+config.LoadType);
                 System.out.println("Node URL: http://0.0.0.0:"+config.ApiPort);
+                System.out.println("APM Type: "+config.ApmType);
                 StartLogic(config);
             }
         }
@@ -164,44 +165,43 @@ public static AppConfig config = new AppConfig();
         System.exit(0);
     }
 
-    private static void Income(HttpExchange exchange) throws Exception {
+    private static void Income(HttpExchange exchange) {
         Transaction transaction = null;
-        if(config.ApmType=="elastic")
-        {
+        if (config.ApmType == "elastic") {
+            System.out.println("Start TX");
             transaction = ElasticApm.startTransaction();
             transaction.setName("HTTP Income");
             transaction.setType(Transaction.TYPE_REQUEST);
         }
         try {
-        if ("POST".equals(exchange.getRequestMethod())) {
-            StringBuilder textBuilder = new StringBuilder();
+            if ("POST".equals(exchange.getRequestMethod())) {
+                StringBuilder textBuilder = new StringBuilder();
 
-            try (Reader reader = new BufferedReader(new InputStreamReader
-                    (exchange.getRequestBody(), Charset.forName(StandardCharsets.UTF_8.name())))) {
-                int c;
-                while ((c = reader.read()) != -1) {
-                    textBuilder.append((char) c);
+                try (Reader reader = new BufferedReader(new InputStreamReader
+                        (exchange.getRequestBody(), Charset.forName(StandardCharsets.UTF_8.name())))) {
+                    int c;
+                    while ((c = reader.read()) != -1) {
+                        textBuilder.append((char) c);
+                    }
                 }
-            }
-            String respText = config.Name+":"+textBuilder.toString();
-            exchange.sendResponseHeaders(200, respText.getBytes().length);
-            exchange.getRequestHeaders().put("Content-Type", Collections.singletonList("text/plain"));
+                String respText = config.Name + ":" + textBuilder.toString();
+                exchange.sendResponseHeaders(200, respText.getBytes().length);
+                exchange.getRequestHeaders().put("Content-Type", Collections.singletonList("text/plain"));
 
-            OutputStream output = exchange.getResponseBody();
-            output.write(respText.getBytes(StandardCharsets.UTF_8));
-            output.flush();
-            if(config.LoadType.equals("caller"))
-            {
-                SendToDownStreams(textBuilder.toString());
+                OutputStream output = exchange.getResponseBody();
+                output.write(respText.getBytes(StandardCharsets.UTF_8));
+                output.flush();
+                if (config.LoadType.equals("caller")) {
+                    SendToDownStreams(textBuilder.toString());
+                }
+            } else {
+                exchange.sendResponseHeaders(405, -1);// 405 Method Not Allowed
             }
-        } else {
-            exchange.sendResponseHeaders(405, -1);// 405 Method Not Allowed
-        }
         } catch (Exception e) {
             transaction.captureException(e);
-            throw e;
         } finally {
-            if(transaction!=null) {
+            if (transaction != null) {
+                System.out.println("End TX");
                 transaction.end();
             }
         }
