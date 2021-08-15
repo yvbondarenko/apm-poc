@@ -3,7 +3,7 @@ package yb;
 import co.elastic.apm.api.ElasticApm;
 import co.elastic.apm.api.Span;
 import lombok.SneakyThrows;
-
+import co.elastic.apm.api.Transaction;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -32,15 +32,11 @@ public class HttpCaller implements Runnable {
     }
 
     private void SendHttpPost()  {
-        //Transaction tx = null;
-        Span parent = null;
-        if (Main.config.ApmType.equals("elastic")) {
-            //tx = ElasticApm.currentTransaction();
-            parent = ElasticApm.currentSpan();
-        }
+        Transaction tx = null;
         Span span = null;
         if (Main.config.ApmType.equals("elastic")) {
-            span = parent.startSpan();
+            tx = ElasticApm.currentTransaction();
+            span = tx.startSpan();
             span.setName("Call to downstream " + urlString);
         }
         try {
