@@ -12,27 +12,28 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 import co.elastic.apm.api.ElasticApm;
 import co.elastic.apm.api.Transaction;
+import co.elastic.apm.api.Span;
 import lombok.SneakyThrows;
 
 public class Main {
-public static AppConfig config = new AppConfig();
+    public static AppConfig config = new AppConfig();
+
     public static void main(String[] args) throws IOException {
-        if(args.length < 1 || args[0].equals("")) {
+        if (args.length < 1 || args[0].equals("")) {
             PrintHelpText();
         }
-        if(!args[0].contains(";")) {
+        if (!args[0].contains(";")) {
             PrintHelpText();
-        }
-        else {
+        } else {
             String[] str = args[0].split(";");
             if (str.length != 7) {
                 PrintHelpText();
             } else {
                 CreateConfig(str);
-                System.out.println("Node Name:"+config.Name);
-                System.out.println("Node Type:"+config.LoadType);
-                System.out.println("Node URL: http://0.0.0.0:"+config.ApiPort);
-                System.out.println("APM Type: "+config.ApmType);
+                System.out.println("Node Name:" + config.Name);
+                System.out.println("Node Type:" + config.LoadType);
+                System.out.println("Node URL: http://0.0.0.0:" + config.ApiPort);
+                System.out.println("APM Type: " + config.ApmType);
                 StartLogic(config);
             }
         }
@@ -115,10 +116,10 @@ public static AppConfig config = new AppConfig();
     }
 
     private static void StartLogic(AppConfig config) throws IOException {
-        if(config.LoadType.equals("generator")) {
+        if (config.LoadType.equals("generator")) {
             StartTimer();
         }
-        if(config.LoadType.equals("caller")||config.LoadType.equals("receiver")) {
+        if (config.LoadType.equals("caller") || config.LoadType.equals("receiver")) {
             StartHttpServer(config);
         }
     }
@@ -127,21 +128,21 @@ public static AppConfig config = new AppConfig();
         TimerTask task = new TimerTask() {
             @SneakyThrows
             public void run() {
-                UUID uuid = UUID. randomUUID();
-                String uuidAsString = uuid. toString();
+                UUID uuid = UUID.randomUUID();
+                String uuidAsString = uuid.toString();
                 SendToDownStreams(uuidAsString);
             }
         };
         Timer timer = new Timer("Timer");
 
         long delay = 1L;
-        timer.scheduleAtFixedRate(task, delay,config.GenerateIntervalMs);
+        timer.scheduleAtFixedRate(task, delay, config.GenerateIntervalMs);
     }
 
     private static void StartHttpServer(AppConfig config) throws IOException {
         int serverPort = config.ApiPort;
         HttpServer server = HttpServer.create(new InetSocketAddress(serverPort), 0);
-        HttpContext context =server.createContext("/api", (exchange -> {
+        HttpContext context = server.createContext("/api", (exchange -> {
             try {
                 Income(exchange);
             } catch (Exception e) {
@@ -167,10 +168,13 @@ public static AppConfig config = new AppConfig();
 
     private static void Income(HttpExchange exchange) {
         Transaction transaction = null;
+        Span span = null;
         if (config.ApmType.equals("elastic")) {
             transaction = ElasticApm.startTransaction();
             transaction.setName("HTTP Income");
             transaction.setType(Transaction.TYPE_REQUEST);
+            span = transaction.startSpan();
+            span.setName("income request");
         }
         try {
             if ("POST".equals(exchange.getRequestMethod())) {
@@ -200,17 +204,34 @@ public static AppConfig config = new AppConfig();
             transaction.captureException(e);
         } finally {
             if (transaction != null) {
+                span.end();
                 transaction.end();
             }
         }
     }
 
     private static void SendToDownStreams(String message) throws Exception {
-        for (String endpoint: config.CallToServers
+        Span parent = null;
+        if (config.ApmType.equals("elastic")) {
+            parent = ElasticApm.currentSpan();
+        }
+
+        for (String endpoint : config.CallToServers
         ) {
-            HttpCaller myHttpCaller = new HttpCaller(message,endpoint);
-            Thread t = new Thread(myHttpCaller);
-            t.start();
+            Span span = null;
+            if (config.ApmType.equals("elastic")) {
+                span = parent.startSpan();
+                span.setName("Call to downstreams");
+            }
+            try {
+                HttpCaller myHttpCaller = new HttpCaller(message, endpoint);
+                Thread t = new Thread(myHttpCaller);
+                t.start();
+            } catch (Exception e) {
+                span.captureException(e);
+            } finally {
+                span.end();
+            }
         }
     }
 }
