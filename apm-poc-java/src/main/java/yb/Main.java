@@ -194,6 +194,9 @@ public class Main {
                 OutputStream output = exchange.getResponseBody();
                 output.write(respText.getBytes(StandardCharsets.UTF_8));
                 output.flush();
+                if (transaction != null) {
+                    span.end();
+                }
                 if (config.LoadType.equals("caller")) {
                     SendToDownStreams(textBuilder.toString());
                 }
@@ -206,7 +209,6 @@ public class Main {
             }
         } finally {
             if (transaction != null) {
-                span.end();
                 transaction.end();
             }
         }
@@ -215,10 +217,9 @@ public class Main {
     private static void SendToDownStreams(String message) throws Exception {
         for (String endpoint : config.CallToServers
         ) {
-                HttpCaller myHttpCaller = new HttpCaller(message, endpoint);
-                Thread t = new Thread(myHttpCaller);
-                t.start();
-
+            HttpCaller myHttpCaller = new HttpCaller(message, endpoint);
+            Thread t = new Thread(myHttpCaller);
+            t.start();
         }
     }
 }

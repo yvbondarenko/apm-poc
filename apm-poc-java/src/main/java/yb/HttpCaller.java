@@ -32,7 +32,7 @@ public class HttpCaller implements Runnable {
     }
 
     private void SendHttpPost()  {
-        Transaction tx = null;
+        Transaction tx;
         Span span = null;
         if (Main.config.ApmType.equals("elastic")) {
             tx = ElasticApm.currentTransaction();
