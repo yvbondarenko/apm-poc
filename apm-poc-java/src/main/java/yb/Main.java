@@ -167,11 +167,15 @@ public static AppConfig config = new AppConfig();
 
     private static void Income(HttpExchange exchange) {
         Transaction transaction = null;
+        System.out.println("Begin Income");
         if (config.ApmType == "elastic") {
             System.out.println("Start TX");
             transaction = ElasticApm.startTransaction();
             transaction.setName("HTTP Income");
             transaction.setType(Transaction.TYPE_REQUEST);
+        }
+        else {
+            System.out.println("NOT Start TX");
         }
         try {
             if ("POST".equals(exchange.getRequestMethod())) {
