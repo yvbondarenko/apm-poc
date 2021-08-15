@@ -213,11 +213,12 @@ public class Main {
     }
 
     private static void SendToDownStreams(String message) {
+        //Transaction tx = null;
         Span parent = null;
         if (config.ApmType.equals("elastic")) {
+            //tx = ElasticApm.currentTransaction();
             parent = ElasticApm.currentSpan();
         }
-
         for (String endpoint : config.CallToServers
         ) {
             Span span = null;
@@ -226,6 +227,7 @@ public class Main {
                 span.setName("Call to downstream "+endpoint);
             }
             try {
+                Thread.sleep(1000);
                 HttpCaller myHttpCaller = new HttpCaller(message, endpoint);
                 Thread t = new Thread(myHttpCaller);
                 t.start();
