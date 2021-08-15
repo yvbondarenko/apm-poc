@@ -201,7 +201,9 @@ public class Main {
                 exchange.sendResponseHeaders(405, -1);// 405 Method Not Allowed
             }
         } catch (Exception e) {
-            transaction.captureException(e);
+            if (transaction != null) {
+                transaction.captureException(e);
+            }
         } finally {
             if (transaction != null) {
                 span.end();
@@ -228,9 +230,13 @@ public class Main {
                 Thread t = new Thread(myHttpCaller);
                 t.start();
             } catch (Exception e) {
-                span.captureException(e);
+                if (span != null) {
+                    span.captureException(e);
+                }
             } finally {
-                span.end();
+                if (span != null) {
+                    span.end();
+                }
             }
         }
     }
