@@ -6,11 +6,12 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
-
 import com.sun.net.httpserver.BasicAuthenticator;
 import com.sun.net.httpserver.HttpContext;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
+import co.elastic.apm.api.ElasticApm;
+import co.elastic.apm.api.Transaction;
 import lombok.SneakyThrows;
 
 public class Main {
@@ -164,6 +165,14 @@ public static AppConfig config = new AppConfig();
     }
 
     private static void Income(HttpExchange exchange) throws Exception {
+        Transaction transaction = null;
+        if(config.ApmType=="elastic")
+        {
+            transaction = ElasticApm.startTransaction();
+            transaction.setName("HTTP Income");
+            transaction.setType(Transaction.TYPE_REQUEST);
+        }
+        try {
         if ("POST".equals(exchange.getRequestMethod())) {
             StringBuilder textBuilder = new StringBuilder();
 
@@ -175,7 +184,6 @@ public static AppConfig config = new AppConfig();
                 }
             }
             String respText = config.Name+":"+textBuilder.toString();
-
             exchange.sendResponseHeaders(200, respText.getBytes().length);
             exchange.getRequestHeaders().put("Content-Type", Collections.singletonList("text/plain"));
 
@@ -188,6 +196,14 @@ public static AppConfig config = new AppConfig();
             }
         } else {
             exchange.sendResponseHeaders(405, -1);// 405 Method Not Allowed
+        }
+        } catch (Exception e) {
+            transaction.captureException(e);
+            throw e;
+        } finally {
+            if(transaction!=null) {
+                transaction.end();
+            }
         }
     }
 
