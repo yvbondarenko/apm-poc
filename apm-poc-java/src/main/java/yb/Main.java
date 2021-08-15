@@ -212,34 +212,13 @@ public class Main {
         }
     }
 
-    private static void SendToDownStreams(String message) {
-        //Transaction tx = null;
-        Span parent = null;
-        if (config.ApmType.equals("elastic")) {
-            //tx = ElasticApm.currentTransaction();
-            parent = ElasticApm.currentSpan();
-        }
+    private static void SendToDownStreams(String message) throws Exception {
         for (String endpoint : config.CallToServers
         ) {
-            Span span = null;
-            if (config.ApmType.equals("elastic")) {
-                span = parent.startSpan();
-                span.setName("Call to downstream "+endpoint);
-            }
-            try {
-                Thread.sleep(1000);
                 HttpCaller myHttpCaller = new HttpCaller(message, endpoint);
                 Thread t = new Thread(myHttpCaller);
                 t.start();
-            } catch (Exception e) {
-                if (span != null) {
-                    span.captureException(e);
-                }
-            } finally {
-                if (span != null) {
-                    span.end();
-                }
-            }
+
         }
     }
 }
