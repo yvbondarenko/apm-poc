@@ -212,7 +212,7 @@ public class Main {
         }
     }
 
-    private static void SendToDownStreams(String message) throws Exception {
+    private static void SendToDownStreams(String message) {
         Span parent = null;
         if (config.ApmType.equals("elastic")) {
             parent = ElasticApm.currentSpan();
@@ -223,7 +223,7 @@ public class Main {
             Span span = null;
             if (config.ApmType.equals("elastic")) {
                 span = parent.startSpan();
-                span.setName("Call to downstreams");
+                span.setName("Call to downstream "+endpoint);
             }
             try {
                 HttpCaller myHttpCaller = new HttpCaller(message, endpoint);
