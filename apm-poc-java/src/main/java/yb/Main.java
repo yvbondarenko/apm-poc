@@ -168,7 +168,7 @@ public static AppConfig config = new AppConfig();
     private static void Income(HttpExchange exchange) {
         Transaction transaction = null;
         System.out.println("Begin Income");
-        if (config.ApmType == "elastic") {
+        if (config.ApmType.equals("elastic")) {
             System.out.println("Start TX");
             transaction = ElasticApm.startTransaction();
             transaction.setName("HTTP Income");
